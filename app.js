@@ -701,6 +701,173 @@ function updateNotifyStatus() {
   }
 }
 
+/* ─── 검색 ─── */
+const SEARCH_STATE = { query: '', initialized: false };
+
+function setupSearchOnce() {
+  if (SEARCH_STATE.initialized) return;
+  SEARCH_STATE.initialized = true;
+  const input = $('#search-input');
+  const clearBtn = $('#search-clear');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    SEARCH_STATE.query = input.value;
+    clearBtn.classList.toggle('hidden', !input.value);
+    runSearch();
+  });
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    SEARCH_STATE.query = '';
+    clearBtn.classList.add('hidden');
+    input.focus();
+    runSearch();
+  });
+}
+
+function renderSearch() {
+  setupSearchOnce();
+  const input = $('#search-input');
+  if (input && input.value !== SEARCH_STATE.query) {
+    input.value = SEARCH_STATE.query;
+  }
+  $('#search-clear').classList.toggle('hidden', !SEARCH_STATE.query);
+  runSearch();
+  // 모바일에서 자동 포커스는 키보드를 띄워 거슬릴 수 있어 생략
+}
+
+function searchLessons(rawQuery) {
+  const q = (rawQuery || '').trim().toLowerCase();
+  if (!q) return [];
+  const results = [];
+  const fields = ['ja', 'furigana', 'romaji', 'kana_ko', 'ko', 'tip'];
+  const kindLabel = { sentence: '내가 먼저', response: '상대 응답', followup: '내가 다시' };
+
+  STATE.lessons.forEach(lesson => {
+    const sceneHit = (lesson.scene || '').toLowerCase().includes(q);
+    const phaseHit = (lesson.phase || '').toLowerCase().includes(q);
+
+    const checkItem = (item, kind) => {
+      const matched = [];
+      for (const f of fields) {
+        const v = (item[f] || '').toLowerCase();
+        if (v.includes(q)) matched.push(f);
+      }
+      if (matched.length || sceneHit || phaseHit) {
+        results.push({
+          day: lesson.day,
+          date: lesson.date,
+          phase: lesson.phase,
+          scene: lesson.scene,
+          kindLabel: kindLabel[kind],
+          item,
+          matched,
+          sceneHit,
+          phaseHit,
+        });
+      }
+    };
+    (lesson.sentences || []).forEach(s => checkItem(s, 'sentence'));
+    (lesson.responses || []).forEach(r => checkItem(r, 'response'));
+    (lesson.followUp || []).forEach(f => checkItem(f, 'followup'));
+  });
+  return results;
+}
+
+function highlight(text, q) {
+  if (!q || !text) return escapeHtml(text || '');
+  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(${escapedQ})`, 'gi');
+  const safe = escapeHtml(text);
+  // text를 안전 escape한 뒤 case-insensitive 매칭. q도 단순 substring이므로 한글/일본어 OK.
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
+function runSearch() {
+  const q = SEARCH_STATE.query;
+  const meta = $('#search-meta');
+  const container = $('#search-results');
+  const claudeWrap = $('#search-claude-wrap');
+  const claudeQ = $('#search-claude-q');
+  const claudeLink = $('#search-claude-link');
+
+  if (!q || !q.trim()) {
+    meta.textContent = '';
+    container.innerHTML = `
+      <div class="search-empty">
+        <span class="se-emoji">🔍</span>
+        검색어를 입력해 주세요.<br>
+        일본어, 한국어, 로마자, 장면 어떤 것이든 가능합니다.
+      </div>`;
+    claudeWrap.classList.add('hidden');
+    return;
+  }
+
+  const results = searchLessons(q);
+  meta.textContent = `${results.length}개 결과`;
+
+  if (results.length === 0) {
+    container.innerHTML = `
+      <div class="search-empty">
+        <span class="se-emoji">🤔</span>
+        '${escapeHtml(q)}'에 대한 결과가 없어요.<br>
+        Claude에게 직접 물어볼 수 있어요.
+      </div>`;
+  } else {
+    container.innerHTML = results.map((r, idx) => {
+      const item = r.item;
+      const phaseClass = PHASE_TAG_CLASS(r.phase);
+      return `
+        <button class="search-result" data-idx="${idx}">
+          <div class="sr-meta">
+            <span class="sr-tag ${phaseClass}">Day ${r.day} · ${escapeHtml(r.phase)}</span>
+            <span class="sr-kind">${r.kindLabel}</span>
+            ${r.sceneHit ? `<span style="color:var(--text-muted)"> · 장면: ${highlight(r.scene, q)}</span>` : ''}
+          </div>
+          <div class="sr-ja">${highlight(item.ja, q)}</div>
+          <div class="sr-kana">${renderKanaKoHighlighted(item.kana_ko, q)}</div>
+          <div class="sr-ko">${highlight(item.ko, q)}</div>
+        </button>
+      `;
+    }).join('');
+
+    $$('.search-result', container).forEach(btn => {
+      const idx = Number(btn.getAttribute('data-idx'));
+      btn.addEventListener('click', () => {
+        const r = results[idx];
+        const lesson = STATE.lessons.find(l => l.day === r.day);
+        if (!lesson) return;
+        showLessonDirectly(lesson);
+        switchView('today');
+      });
+    });
+  }
+
+  // Claude에게 물어보기 (항상 노출)
+  claudeWrap.classList.remove('hidden');
+  claudeQ.textContent = q.length > 24 ? q.slice(0, 24) + '…' : q;
+  claudeLink.href = buildClaudeAskUrl(q);
+}
+
+function renderKanaKoHighlighted(text, q) {
+  // 화살표 분리 + 하이라이트 동시 적용
+  if (!text) return '';
+  const safe = escapeHtml(text);
+  const withArrows = safe.replace(/([↗↘])/g, '<span class="arrow">$1</span>');
+  if (!q) return withArrows;
+  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(${escapedQ})(?![^<]*>)`, 'gi');
+  return withArrows.replace(re, '<mark>$1</mark>');
+}
+
+function buildClaudeAskUrl(query) {
+  const prompt =
+    `타카마츠 여행 일본어를 학습 중입니다. ` +
+    `'${query}'에 대해 알려주세요. ` +
+    `의미, 발음(한글 표기 포함), 사용 상황, 비슷한/관련 표현, ` +
+    `현지에서 주의할 뉘앙스를 한국어로 설명해 주세요.`;
+  return 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+}
+
 /* ─── 라우팅 ─── */
 function switchView(name) {
   $$('.view').forEach(v => v.classList.remove('active'));
@@ -711,6 +878,7 @@ function switchView(name) {
   if (name === 'today' && _override) { /* keep override */ }
   if (name === 'schedule') renderSchedule();
   if (name === 'settings') renderSettings();
+  if (name === 'search') renderSearch();
   window.scrollTo(0, 0);
 }
 

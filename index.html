@@ -52,6 +52,33 @@
         <div id="out-of-range-notice" class="notice hidden"></div>
       </section>
 
+      <!-- 화면 D: 검색 -->
+      <section id="view-search" class="view">
+        <header class="page-header">
+          <h1>검색</h1>
+          <div class="header-sub">단어·문장·장면을 빠르게 찾아보세요</div>
+        </header>
+        <div class="search-input-wrap">
+          <input
+            type="search"
+            id="search-input"
+            class="search-input"
+            placeholder="예: 물, 얼마, eki, おいしい, 우동"
+            autocomplete="off"
+            inputmode="search"
+          >
+          <button id="search-clear" class="search-clear hidden" aria-label="지우기">&times;</button>
+        </div>
+        <div id="search-meta" class="search-meta"></div>
+        <div id="search-results" class="search-results"></div>
+        <div id="search-claude-wrap" class="search-claude-wrap hidden">
+          <p class="search-claude-hint">원하는 결과가 없거나 더 자세히 알고 싶다면:</p>
+          <a id="search-claude-link" class="btn btn-primary search-claude-btn" target="_blank" rel="noopener">
+            🤖 Claude에게 「<span id="search-claude-q"></span>」 물어보기
+          </a>
+        </div>
+      </section>
+
       <!-- 화면 B: 일정 -->
       <section id="view-schedule" class="view">
         <header class="page-header">
@@ -135,6 +162,10 @@
       <button class="tab-btn" data-view="schedule" role="tab">
         <span class="tab-icon">🗓️</span>
         <span class="tab-label">일정</span>
+      </button>
+      <button class="tab-btn" data-view="search" role="tab">
+        <span class="tab-icon">🔍</span>
+        <span class="tab-label">검색</span>
       </button>
       <button class="tab-btn" data-view="settings" role="tab">
         <span class="tab-icon">⚙️</span>
