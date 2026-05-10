@@ -73,38 +73,83 @@
     }
   }
 
-  function fireNotification(title, body) {
-    if (!('Notification' in window)) return;
-    if (Notification.permission !== 'granted') return;
-    try {
-      // SW가 등록되어 있으면 SW 알림이 더 안정적
-      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification(title, {
-            body,
-            icon: 'icon-192.png',
-            badge: 'icon-192.png',
-            tag: 'daily-lesson',
-          });
-        }).catch(() => {
-          new Notification(title, { body, icon: 'icon-192.png' });
-        });
-      } else {
-        new Notification(title, { body, icon: 'icon-192.png' });
+  async function fireNotification(title, body, extraOpts) {
+    if (!('Notification' in window)) {
+      return { ok: false, reason: '이 브라우저는 알림 API를 지원하지 않습니다.' };
+    }
+    if (Notification.permission !== 'granted') {
+      return { ok: false, reason: '알림 권한이 허용되지 않았습니다.' };
+    }
+    const options = Object.assign({
+      body,
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      tag: 'daily-lesson',
+      requireInteraction: false,
+      silent: false,
+      vibrate: [200, 100, 200],
+      renotify: true,
+    }, extraOpts || {});
+
+    // SW 우선 (PWA + 모바일에서 표준 경로)
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification(title, options);
+        console.log('[notify] SW.showNotification OK', { title, options });
+        return { ok: true, via: 'sw' };
+      } catch (e) {
+        console.warn('[notify] SW.showNotification 실패:', e);
+        // 직접 경로로 폴백 시도 (Android Chrome PWA에서는 throw할 수 있음)
       }
-    } catch (_) {}
+    }
+
+    try {
+      new Notification(title, options);
+      console.log('[notify] new Notification OK', { title, options });
+      return { ok: true, via: 'direct' };
+    } catch (e) {
+      console.error('[notify] new Notification 실패:', e);
+      return { ok: false, reason: '알림 전송 실패: ' + (e.message || e.name || '알 수 없는 오류') };
+    }
   }
 
-  function testNotify() {
+  async function testNotify() {
     if (!('Notification' in window)) {
       alert('이 브라우저는 알림을 지원하지 않습니다.');
       return;
     }
     if (Notification.permission !== 'granted') {
-      alert('먼저 알림 권한을 허용해 주세요.');
+      alert('먼저 알림 권한을 허용해 주세요. (설정 화면 상단의 「알림 권한 요청」 버튼)');
       return;
     }
-    fireNotification('타카마츠 JP', '알림이 정상적으로 동작합니다 ✨');
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg || !reg.active) {
+        alert('Service Worker가 아직 활성화되지 않았어요. 페이지를 한 번 새로고침한 뒤 다시 시도해 주세요.');
+        return;
+      }
+    }
+    const result = await fireNotification(
+      '타카마츠 JP — 테스트 ✨',
+      '알림이 정상적으로 동작합니다. 이 알림이 보이면 OK!',
+      {
+        tag: 'test-' + Date.now(),
+        requireInteraction: true,
+        renotify: true,
+      }
+    );
+    if (result.ok) {
+      // 즉시 피드백 (시스템 알림이 안 보일 때를 대비)
+      if (typeof window.showToast === 'function') {
+        window.showToast('알림을 보냈어요. 화면 상단을 내려 알림 영역도 확인해 주세요.');
+      } else {
+        alert('알림을 보냈어요. 화면 상단의 알림 영역도 확인해 주세요.');
+      }
+    } else {
+      alert('알림 전송 실패: ' + result.reason +
+        '\n\n진단: F12 콘솔 또는 Chrome DevTools에서 [notify] 로그를 확인해 주세요.');
+    }
   }
 
   function scheduleTodayReminder() {

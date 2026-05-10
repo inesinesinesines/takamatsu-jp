@@ -160,6 +160,8 @@ ol, ul { margin: 0; padding-left: 1.2em; }
   padding: 18px 18px 14px;
   margin-bottom: 16px;
   box-shadow: var(--shadow-card);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .lesson-card.response {
   background: var(--surface-response);
@@ -187,28 +189,39 @@ ol, ul { margin: 0; padding-left: 1.2em; }
   font-family: var(--font-jp);
   font-weight: 500;
   color: var(--text);
-  line-height: 1.4;
+  line-height: 1.45;
   margin: 0;
-  word-break: keep-all;
+  /* 일본어는 단어 구분이 없으므로 어디서든 줄바꿈 허용 */
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-break: auto;
+  max-width: 100%;
 }
-.lesson-card .ja-text { font-size: 30px; }
-.lesson-card.response .ja-text { font-size: 23px; }
-.lesson-card.followup .ja-text { font-size: 20px; }
+.lesson-card .ja-text { font-size: clamp(22px, 6.6vw, 30px); }
+.lesson-card.response .ja-text { font-size: clamp(19px, 5.4vw, 23px); }
+.lesson-card.followup .ja-text { font-size: clamp(17px, 4.8vw, 20px); }
 
 .furigana {
   font-family: var(--font-jp);
   font-size: 12px;
   color: var(--text-muted);
   margin: 4px 0 6px;
-  line-height: 1.4;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-width: 100%;
 }
 
 .kana-ko {
   color: var(--accent);
-  font-size: 17px;
+  font-size: clamp(15px, 4.4vw, 17px);
   font-weight: 500;
   letter-spacing: 0.02em;
   margin: 6px 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-width: 100%;
+  line-height: 1.5;
 }
 .kana-ko .arrow {
   color: var(--secondary);
@@ -222,7 +235,10 @@ ol, ul { margin: 0; padding-left: 1.2em; }
   color: var(--text-muted);
   font-style: italic;
   margin: 2px 0 8px;
-  line-height: 1.4;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .ko-text {
@@ -230,6 +246,10 @@ ol, ul { margin: 0; padding-left: 1.2em; }
   color: var(--text);
   margin: 6px 0;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: keep-all; /* 한국어는 어절 단위 줄바꿈이 자연스러움 */
+  max-width: 100%;
+  line-height: 1.5;
 }
 
 .card-actions {
@@ -668,9 +688,11 @@ ol, ul { margin: 0; padding-left: 1.2em; }
   font-size: 18px;
   font-weight: 500;
   color: var(--text);
-  line-height: 1.4;
+  line-height: 1.45;
   margin: 2px 0;
-  word-break: keep-all;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-width: 100%;
 }
 .search-result .sr-kana {
   color: var(--accent);
