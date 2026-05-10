@@ -1,5 +1,5 @@
 /* Service Worker — 타카마츠 JP */
-const CACHE_NAME = 'takamatsu-jp-v2';
+const CACHE_NAME = 'takamatsu-jp-v3';
 const ASSETS = [
   './',
   'index.html',
