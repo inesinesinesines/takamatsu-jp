@@ -1,0 +1,17 @@
+{
+  "name": "타카마츠 여행 일본어",
+  "short_name": "타카마츠 JP",
+  "description": "2026년 6월 타카마츠 여행을 위한 34일 일본어 학습 PWA",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdfaf6",
+  "theme_color": "#d4633c",
+  "orientation": "portrait",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

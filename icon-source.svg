@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#d4633c"/>
+  <text x="50%" y="50%"
+        font-family="'Noto Serif JP','Noto Sans JP','Yu Mincho','Hiragino Mincho ProN',serif"
+        font-size="320"
+        font-weight="700"
+        fill="#fdfaf6"
+        text-anchor="middle"
+        dominant-baseline="central">旅</text>
+</svg>

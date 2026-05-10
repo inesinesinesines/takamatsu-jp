@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#d4633c">
+  <title>타카마츠 여행 일본어</title>
+
+  <link rel="manifest" href="manifest.json">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="타카마츠 JP">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 인앱 알림 배너 -->
+    <div id="in-app-banner" class="in-app-banner hidden" role="status">
+      <span class="banner-text">오늘의 학습이 도착했어요</span>
+      <button id="banner-close" class="banner-close" aria-label="닫기">&times;</button>
+    </div>
+
+    <main id="main">
+      <!-- 화면 A: 오늘 -->
+      <section id="view-today" class="view active">
+        <header class="page-header">
+          <h1 id="header-title">타카마츠 여행 일본어</h1>
+          <div class="header-sub">
+            <span id="header-date"></span>
+            <span id="header-dday"></span>
+          </div>
+        </header>
+
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span id="progress-day-label">Day - / 34</span>
+            <span id="progress-completed-label"></span>
+          </div>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        </div>
+
+        <div id="today-content"></div>
+
+        <div id="out-of-range-notice" class="notice hidden"></div>
+      </section>
+
+      <!-- 화면 B: 일정 -->
+      <section id="view-schedule" class="view">
+        <header class="page-header">
+          <h1>전체 일정</h1>
+          <div class="header-sub">5/10 ~ 6/12 · 총 34일</div>
+        </header>
+        <div id="schedule-grid" class="schedule-grid"></div>
+        <div class="schedule-legend">
+          <span><span class="legend-dot done"></span>완료</span>
+          <span><span class="legend-dot today"></span>오늘</span>
+          <span><span class="legend-dot future"></span>잠금</span>
+        </div>
+      </section>
+
+      <!-- 화면 C: 설정 -->
+      <section id="view-settings" class="view">
+        <header class="page-header">
+          <h1>설정</h1>
+        </header>
+
+        <section class="settings-block">
+          <h2>알림 시간</h2>
+          <div class="setting-row">
+            <label for="notify-time" class="setting-label">매일 알림 받을 시간</label>
+            <input type="time" id="notify-time" value="09:00">
+          </div>
+          <div class="setting-actions">
+            <button id="notify-save" class="btn btn-primary">저장</button>
+            <button id="notify-permission" class="btn btn-secondary">알림 권한 요청</button>
+            <button id="notify-test" class="btn btn-secondary">알림 테스트</button>
+          </div>
+          <p id="notify-status" class="setting-hint"></p>
+        </section>
+
+        <section class="settings-block">
+          <h2>📱 알림 안내</h2>
+          <div class="info-card">
+            <h3>▸ Android 이용자</h3>
+            <p>앱을 홈 화면에 추가한 뒤, 알림 권한을 허용하세요.<br>
+               브라우저가 백그라운드에 있어도 어느 정도 알림이 작동합니다.</p>
+
+            <h3>▸ iOS 이용자</h3>
+            <ol class="info-list">
+              <li>iOS 16.4 이상이어야 알림을 받을 수 있어요.</li>
+              <li>Safari에서 ‘공유 → 홈 화면에 추가’로 PWA를 설치한 뒤, 홈 화면 아이콘으로 앱을 열어주세요.</li>
+              <li>그 상태에서 알림 권한을 허용해야 작동합니다.</li>
+              <li>브라우저로 직접 열면 알림이 동작하지 않습니다.</li>
+            </ol>
+
+            <h3>▸ 공통</h3>
+            <p>브라우저가 완전히 닫힌 상태에서는 알림이 가지 않을 수 있습니다.<br>
+               하루 한 번 앱을 열어두시면 가장 잘 작동합니다.</p>
+          </div>
+        </section>
+
+        <section class="settings-block">
+          <h2>발음 표기 안내</h2>
+          <ul id="pronunciation-guide" class="info-list"></ul>
+        </section>
+
+        <section class="settings-block">
+          <h2>진도</h2>
+          <div class="setting-actions">
+            <button id="progress-reset" class="btn btn-danger">진도 초기화</button>
+          </div>
+        </section>
+
+        <section class="settings-block app-info">
+          <p>타카마츠 여행 일본어 PWA</p>
+          <p class="muted">v1.0 · 2026년 6월 13일 여행을 위한 34일 학습</p>
+        </section>
+      </section>
+    </main>
+
+    <!-- 하단 탭 -->
+    <nav class="bottom-tab-nav" role="tablist">
+      <button class="tab-btn active" data-view="today" role="tab">
+        <span class="tab-icon">📖</span>
+        <span class="tab-label">오늘</span>
+      </button>
+      <button class="tab-btn" data-view="schedule" role="tab">
+        <span class="tab-icon">🗓️</span>
+        <span class="tab-label">일정</span>
+      </button>
+      <button class="tab-btn" data-view="settings" role="tab">
+        <span class="tab-icon">⚙️</span>
+        <span class="tab-label">설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="notify.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
